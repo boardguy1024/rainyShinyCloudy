@@ -10,10 +10,10 @@ import UIKit
 import Alamofire
 
 class CurrentWeather {
-    var _cityName: String!
-    var _date: String!
-    var _weatherType: String!
-    var _currentTemp: Double!
+   private var _cityName: String!
+   private var _date: String!
+   private var _weatherType: String!
+   private var _currentTemp: Double!
     
     var cityName: String {
         if _cityName == nil { _cityName = "" }
@@ -33,21 +33,54 @@ class CurrentWeather {
         if _weatherType == nil { _weatherType = "" }
         return _weatherType
     }
-    var currentTemp: Double {
-        if _currentTemp == nil { _currentTemp = 0.0 }
-        return _currentTemp
+    var currentTemp: String {
+        get {
+            if _currentTemp == nil { _currentTemp = 0.0 }
+            return String(_currentTemp) + "°"
+        }
     }
     
-    func downloadWeatherDetail(complited: DownloadComplite) {
+    func downloadWeatherDetail(complited: @escaping DownloadComplite) {
         //Alamofire download
         let currentWeatherURL = URL(string: CURRENT_WEATHER_URL)!
         Alamofire.request(currentWeatherURL).responseJSON { (response) in
             
             let result = response
             print(result)
+            
+            if let dict = result.value as? Dictionary<String , AnyObject> {
+                
+                if let cityName = dict["name"] as? String {
+                    self._cityName = cityName.capitalized
+                }
+                
+                if let weather = dict["weather"] as? [Dictionary<String, AnyObject>] {
+                    if let main = weather[0]["main"] as? String {
+                        self._weatherType = main.capitalized
+                    }
+                }
+                
+                if let main = dict["main"] as? Dictionary<String, AnyObject> {
+                    if let currentTemp = main["temp"] as? Double {
+                        
+                        let kelvinToFahrenheitPreDivision = (currentTemp * (9/5) - 459.67)
+                        let kelvinToFahrenheit = Double(round(10 * kelvinToFahrenheitPreDivision / 10))
+                        self._currentTemp = kelvinToFahrenheit
+                    }
+                }
+            }
+            //callback method
+            complited()
         }
-        //callback method
-        complited()
         
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
