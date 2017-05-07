@@ -17,11 +17,21 @@ class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
     @IBOutlet weak var currentWeatherLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
     
+    let currentWeather = CurrentWeather()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+        currentWeather.downloadWeatherDetail {
+            
+            // download完了時、呼ばれる Callback closure
+            //Setup UI to load downloadData
+            
+            
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
