@@ -10,10 +10,10 @@ import UIKit
 import Alamofire
 
 class Forecast {
-    var _date: String!
-    var _weatherType: String!
-    var _highTemp: String!
-    var _lowTemp: String!
+   private var _date: String!
+   private var _weatherType: String!
+   private var _highTemp: String!
+   private var _lowTemp: String!
     
     var date: String {
         if _date == nil { _date = "" }

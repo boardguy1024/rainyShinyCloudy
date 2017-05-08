@@ -58,6 +58,7 @@ class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
                     }
                 }
             }
+            self.tableView.reloadData()
             comlited()
         }
     }
@@ -72,15 +73,27 @@ class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! WeatherCell
+        
+        cell.configureCell(forecast: forecasts[indexPath.row])
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return 5
+        return forecasts.count
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
 }
