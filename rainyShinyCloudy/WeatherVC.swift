@@ -8,8 +8,9 @@
 
 import UIKit
 import Alamofire
+import CoreLocation
 
-class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
+class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource , CLLocationManagerDelegate{
 
     @IBOutlet weak var dateLabal: UILabel!
     @IBOutlet weak var currentTempLabel: UILabel!
@@ -18,6 +19,9 @@ class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
     @IBOutlet weak var currentWeatherLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
     
+    let locationManager = CLLocationManager()
+    var currentLocation: CLLocation!
+
     var currentWeather : CurrentWeather!
     var forecast : Forecast!
     var forecasts = [Forecast]()
@@ -25,22 +29,57 @@ class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        locationManager.delegate =  self
+        //位置正確度をベストに設定
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        //画面上に表示されている時だけ、位置情報の利用を許可するもので、バックグラウンド状態では許可されない。
+        locationManager.requestWhenInUseAuthorization()
+        //大幅に位置が変更した時のみ位置情報を取得する。
+        locationManager.startMonitoringSignificantLocationChanges()
+        
         tableView.delegate = self
         tableView.dataSource = self
         currentWeather = CurrentWeather()
-        currentWeather.downloadWeatherDetail {
-            
-            // download完了時、呼ばれる Callback closure
-            //Setup UI to load downloadData
-            
-            self.downloadForecaseData {
+     
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        //現在位置座標を取得
+        locationAuthStatus()
+    }
+    
+    func locationAuthStatus() {
+        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
+            // 取得した位置情報をcurrentLocationに格納
+            currentLocation = locationManager.location
+            //取得した現在座標をLocationの座標に格納
+//            print(currentLocation.coordinate.latitude, Location.sharedInstance.longitude)
+            currentWeather.downloadWeatherDetail {
                 
-                 self.updateMainUI()
+                // download完了時、呼ばれる Callback closure
+                //Setup UI to load downloadData
+                
+                self.downloadForecaseData {
+                    
+                    self.updateMainUI()
+                }
             }
+
+           // print(Location.sharedInstance.latitude, Location.sharedInstance.longituce)
+                  } else {
+            // まだ取得前の場合には使用時のみGPS許可をリクエストする。
+            locationManager.requestWhenInUseAuthorization()
+            //もう一度このメソッドを呼び出す。
+            locationAuthStatus()
+            
+            
+
         }
     }
     
-    func downloadForecaseData(comlited: @escaping DownloadComplite) {
+    
+    func downloadForecaseData(comlited: @escaping DownloadComplete) {
         //Downloading forecast weatehr data for tableView
         let forecastURL = URL(string: FORECAST_URL)!
         
@@ -56,9 +95,10 @@ class WeatherVC: UIViewController , UITableViewDelegate , UITableViewDataSource{
                         self.forecasts.append(forecast)
                         print(obj)
                     }
+                    self.forecasts.remove(at: 0)
+                    self.tableView.reloadData()
                 }
             }
-            self.tableView.reloadData()
             comlited()
         }
     }
